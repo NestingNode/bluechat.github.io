@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 html, body {
   margin: 0;
@@ -11,9 +12,7 @@ html, body {
   font-family: Arial, sans-serif;
 }
 
-html, body {
-  overflow: hidden;   /* prevents the whole page from shifting */
-}
+
 /* Loading bar at top */
 #loading {
   position: fixed;
@@ -34,7 +33,7 @@ html, body {
   margin-top: 50px;        /* space for loading bar */
   width: 95%;
   max-width: 400px;
-  height: 90vh;
+  height: calc(100vh - 50px);
   background: #000;
   border-radius: 20px;
 
