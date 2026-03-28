@@ -41,7 +41,7 @@ html, body {
   margin-top: 50px;
   width: 95%;
   max-width: 400px;
-  height: calc(100vh - 50px);
+ height: calc(var(--vh, 1vh) * 100 - 50px);
 
   background: #000;
   border-radius: 20px;
@@ -140,6 +140,14 @@ button {
 </div>
 
 <script>
+   // ===== FIX MOBILE 100vh ISSUE =====
+function setRealVH() {
+  let vh = window.innerHeight * 0.01;
+  document.documentElement.style.setProperty('--vh', `${vh}px`);
+}
+
+setRealVH();
+window.addEventListener('resize', setRealVH);
 /* =========================
    ===== STATE SETUP =====
 ========================= */
