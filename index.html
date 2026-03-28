@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: #111;
+  font-family: Arial, sans-serif;
+}
+
+html, body {
+  overflow: hidden;   /* prevents the whole page from shifting */
+}
+/* Loading bar at top */
+#loading {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  color: #aaa;
+  font-size: 14px;
+  letter-spacing: 1px;
+  padding: 10px 0;
+  background: #111;
+  z-index: 1000;
+}
+
+/* Chat container */
+#chat {
+  margin-top: 50px;        /* space for loading bar */
+  width: 95%;
+  max-width: 400px;
+  height: 90vh;
+  background: #000;
+  border-radius: 20px;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+  border: 1px solid #333;
+
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Messages area */
+#messages {
+  flex: 1;                 /* CRITICAL: keeps input at bottom */
+  padding: 10px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Chat bubbles */
+.message {
+  display: inline-block;
+  padding: 8px 12px;
+  margin: 4px 0;
+  border-radius: 18px;
+  font-size: 18px;
+  max-width: 75%;
+  word-wrap: break-word;
+}
+
+/* User (right) */
+.user {
+  background: #007aff;
+  color: white;
+  align-self: flex-end;
+  border-bottom-right-radius: 4px;
+}
+
+/* Sender (left) */
+.bot {
+  background: #2c2c2e;
+  color: white;
+  align-self: flex-start;
+  border-bottom-left-radius: 4px;
+}
+
+/* Input area */
+#input-area {
+  display: flex;
+  border-top: 1px solid #222;
+  padding: 6px;
+  background: #1c1c1e;
+}
+
+/* Input field */
+#userInput {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  outline: none;
+  background: #111;
+  color: white;
+  font-size: 16px;
+}
+
+/* Button */
+button {
+  background: #007aff;
+  color: white;
+  border: none;
+  padding: 10px 14px;
+  cursor: pointer;
+  border-radius: 8px;
+}
+</style>
+</head>
+
+<body>
+
+<div id="loading">loading blue chat<span id="dots">...</span></div>
+<div id="chat">
+  <div id="messages"></div>
+  <div id="input-area">
+    <input id="userInput" type="text" placeholder="Type a message..." />
+    <button onclick="sendMessage()">Send</button>
+  </div>
+</div>
+
+<script>
+let state = "start";
+let startConfusionCount = 0; // track repeated non-emoji input
+
+function addMessage(text, sender) {
+  const container = document.getElementById("messages");
+
+  const msg = document.createElement("div");
+  msg.classList.add("message", sender);
+  msg.textContent = text;
+
+  container.appendChild(msg);
+
+  // Only scroll if there are already messages
+  if (container.children.length > 1) {
+    container.scrollTop = container.scrollHeight;
+  }
+}
+
+function addTypingBubble() {
+  const typing = document.createElement("div");
+  typing.classList.add("message", "bot");
+  typing.id = "typing";
+  typing.textContent = "…";
+  document.getElementById("messages").appendChild(typing);
+  typing.scrollIntoView();
+}
+
+function removeTypingBubble() {
+  const typing = document.getElementById("typing");
+  if (typing) typing.remove();
+}
+
+function getDelay(text) {
+  return 400 + text.length * 60 + Math.random() * 400;
+}
+
+function animateDots() {
+  const dots = document.getElementById("dots");
+  let count = 0;
+
+  return setInterval(() => {
+    count = (count + 1) % 4;
+    dots.textContent = ".".repeat(count || 1);
+  }, 400);
+}
+
+// handles multiple messages in sequence, preserves random split behavior
+function sendBotSequence(messages) {
+  const loading = document.getElementById("loading");
+  if (loading && loading.textContent.includes("loading")) {
+    loading.textContent = "BLUE Chat";
+  }
+
+  let sequence = [];
+
+  messages.forEach(msg => {
+    if (Array.isArray(msg)) {
+      if (msg.length <= 1) {
+        sequence.push(msg.join(" "));
+      } else {
+        const shouldSplit = Math.random() < 0.4; // 40% chance
+        if (shouldSplit) {
+          msg.forEach(m => sequence.push(m));
+        } else {
+          sequence.push(msg.join(" "));
+        }
+      }
+    } else {
+      sequence.push(msg);
+    }
+  });
+
+  let totalDelay = 0;
+  sequence.forEach(msg => {
+    const delayBeforeTyping = 500 + Math.random() * 800;
+    const typingDuration = 1500 + Math.random() * 800;
+
+    totalDelay += delayBeforeTyping;
+
+    setTimeout(() => addTypingBubble(), totalDelay);
+
+    totalDelay += typingDuration;
+    setTimeout(() => {
+      removeTypingBubble();
+      addMessage(msg, "bot");
+    }, totalDelay);
+  });
+}
+
+function isEmoji(input) {
+  return /[^\w\s]/.test(input);
+}
+
+function sendMessage() {
+  const inputField = document.getElementById("userInput");
+  let userText = inputField.value.trim();
+
+  if (!userText) return;
+
+  addMessage(userText, "user");
+  inputField.value = "";
+
+  const responseSequence = handleState(userText);
+
+  sendBotSequence(responseSequence);
+}
+
+/* -------------------------
+   PUZZLE LOGIC (MULTI-MESSAGE)
+-------------------------- */
+function handleState(input) {
+
+ if (state === "start") {
+
+  if (!isEmoji(input)) {
+    startConfusionCount++;
+
+    if (startConfusionCount === 1) return [["🤨","❓"]];
+    if (startConfusionCount === 2) return [["😅","❓❓"]];
+    return [["🚫💬","🤓☝️💡","🫵⌨️🙂"]];
+  }
+
+  state = "emoji_discovered";
+
+  // ✅ ONE sequence, ordered correctly
+  return [
+    ["👀","🏆","👂"],   // first message
+    ["📍","🗺️🎨","❓"]   // second message
+  ];
+}
+
+  // STATE 2 — teach emoji use
+  if (state === "emoji_discovered") {
+    if (input === "😍") {
+      state = "pattern_hint";
+      return [["🙃","🫵","⏭️"]];
+    }
+    return [["🫵","📍🖼️🎩⬅️❓"]]; // default hint if input not correct
+  }
+
+  // STATE 3 — pattern building
+  if (state === "pattern_hint") {
+    if (input === "😐") {
+      state = "final_hint";
+      return [["💀","👁️","➡️"]];
+    }
+    return [["🤔","👀👀❓👆"]];
+  }
+
+  // STATE 4 — final puzzle
+  if (state === "final_hint") {
+    if (input === "🫠") {
+      state = "complete";
+      return [["🎉","🔓","😭😬😂💩🤗"]];
+    }
+    return [["❓👀👁️🫵⏭️"]]; // keep user on correct path
+  }
+
+  // STATE 5 — completed
+  if (state === "complete") {
+    return [["👋","🤫"]];
+  }
+
+  return [["🤔❓❓"]];
+}
+
+/* -------------------------
+   INITIAL LOADING + START CHAT
+-------------------------- */
+window.addEventListener("DOMContentLoaded", () => {
+  const loading = document.getElementById("loading");
+
+  // start dot animation
+  const dotAnimation = animateDots();
+
+  // how long loading stays visible
+  const loadingTime = 700 + Math.random() * 1000;
+
+  setTimeout(() => {
+    clearInterval(dotAnimation);
+
+    // start initial message after a delay
+    const delay = 1500 + Math.random() * 1500;
+    setTimeout(() => {
+      sendBotSequence([["👀👋❓"]]);
+    }, delay);
+
+  }, loadingTime);
+});
+</script>
+
+</body>
+</html>
