@@ -2,8 +2,12 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
+/* =========================
+   ===== BASE LAYOUT =====
+========================= */
 html, body {
   margin: 0;
   padding: 0;
@@ -13,8 +17,9 @@ html, body {
   font-family: Arial, sans-serif;
 }
 
-
-/* Loading bar at top */
+/* =========================
+   ===== LOADING BAR =====
+========================= */
 #loading {
   position: fixed;
   top: 0;
@@ -29,13 +34,11 @@ html, body {
   z-index: 1000;
 }
 
-/* ===== CHAT CONTAINER ===== */
+/* =========================
+   ===== CHAT CONTAINER =====
+========================= */
 #chat {
-  position: fixed;
-  top: 50px;                 /* below loading bar */
-  left: 50%;
-  transform: translateX(-50%);
-
+  margin-top: 50px;
   width: 95%;
   max-width: 400px;
   height: calc(100vh - 50px);
@@ -48,18 +51,25 @@ html, body {
 
   overflow: hidden;
   border: 1px solid #333;
+
+  margin-left: auto;
+  margin-right: auto;
 }
 
-/* Messages area */
+/* =========================
+   ===== MESSAGES AREA =====
+========================= */
 #messages {
-  flex: 1;                 /* CRITICAL: keeps input at bottom */
+  flex: 1;
   padding: 10px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
 }
 
-/* Chat bubbles */
+/* =========================
+   ===== CHAT BUBBLES =====
+========================= */
 .message {
   display: inline-block;
   padding: 8px 12px;
@@ -70,7 +80,6 @@ html, body {
   word-wrap: break-word;
 }
 
-/* User (right) */
 .user {
   background: #007aff;
   color: white;
@@ -78,7 +87,6 @@ html, body {
   border-bottom-right-radius: 4px;
 }
 
-/* Sender (left) */
 .bot {
   background: #2c2c2e;
   color: white;
@@ -86,7 +94,9 @@ html, body {
   border-bottom-left-radius: 4px;
 }
 
-/* Input area */
+/* =========================
+   ===== INPUT AREA =====
+========================= */
 #input-area {
   display: flex;
   border-top: 1px solid #222;
@@ -94,7 +104,6 @@ html, body {
   background: #1c1c1e;
 }
 
-/* Input field */
 #userInput {
   flex: 1;
   padding: 10px;
@@ -105,7 +114,6 @@ html, body {
   font-size: 16px;
 }
 
-/* Button */
 button {
   background: #007aff;
   color: white;
@@ -119,7 +127,10 @@ button {
 
 <body>
 
+<!-- ===== LOADING ===== -->
 <div id="loading">loading blue chat<span id="dots">...</span></div>
+
+<!-- ===== CHAT UI ===== -->
 <div id="chat">
   <div id="messages"></div>
   <div id="input-area">
@@ -129,9 +140,15 @@ button {
 </div>
 
 <script>
+/* =========================
+   ===== STATE SETUP =====
+========================= */
 let state = "start";
-let startConfusionCount = 0; // track repeated non-emoji input
+let startConfusionCount = 0;
 
+/* =========================
+   ===== MESSAGE RENDERING =====
+========================= */
 function addMessage(text, sender) {
   const container = document.getElementById("messages");
 
@@ -141,11 +158,10 @@ function addMessage(text, sender) {
 
   container.appendChild(msg);
 
-  // ALWAYS scroll smoothly to bottom
-  container.scrollTo({
-    top: container.scrollHeight,
-    behavior: "smooth"
-  });
+  // slight delay prevents layout jump on mobile
+  setTimeout(() => {
+    container.scrollTop = container.scrollHeight;
+  }, 50);
 }
 
 function addTypingBubble() {
@@ -158,10 +174,9 @@ function addTypingBubble() {
 
   container.appendChild(typing);
 
-  container.scrollTo({
-    top: container.scrollHeight,
-    behavior: "smooth"
-  });
+  setTimeout(() => {
+    container.scrollTop = container.scrollHeight;
+  }, 50);
 }
 
 function removeTypingBubble() {
@@ -169,10 +184,9 @@ function removeTypingBubble() {
   if (typing) typing.remove();
 }
 
-function getDelay(text) {
-  return 400 + text.length * 60 + Math.random() * 400;
-}
-
+/* =========================
+   ===== LOADING DOTS =====
+========================= */
 function animateDots() {
   const dots = document.getElementById("dots");
   let count = 0;
@@ -183,9 +197,12 @@ function animateDots() {
   }, 400);
 }
 
-// handles multiple messages in sequence, preserves random split behavior
+/* =========================
+   ===== BOT RESPONSE ENGINE =====
+========================= */
 function sendBotSequence(messages) {
   const loading = document.getElementById("loading");
+
   if (loading && loading.textContent.includes("loading")) {
     loading.textContent = "BLUE Chat";
   }
@@ -194,15 +211,12 @@ function sendBotSequence(messages) {
 
   messages.forEach(msg => {
     if (Array.isArray(msg)) {
-      if (msg.length <= 1) {
-        sequence.push(msg.join(" "));
+      const shouldSplit = msg.length > 1 && Math.random() < 0.4;
+
+      if (shouldSplit) {
+        msg.forEach(m => sequence.push(m));
       } else {
-        const shouldSplit = Math.random() < 0.4; // 40% chance
-        if (shouldSplit) {
-          msg.forEach(m => sequence.push(m));
-        } else {
-          sequence.push(msg.join(" "));
-        }
+        sequence.push(msg.join(" "));
       }
     } else {
       sequence.push(msg);
@@ -210,15 +224,17 @@ function sendBotSequence(messages) {
   });
 
   let totalDelay = 0;
+
   sequence.forEach(msg => {
     const delayBeforeTyping = 500 + Math.random() * 800;
-    const typingDuration = 1500 + Math.random() * 800;
+    const typingDuration = 1200 + Math.random() * 800;
 
     totalDelay += delayBeforeTyping;
 
     setTimeout(() => addTypingBubble(), totalDelay);
 
     totalDelay += typingDuration;
+
     setTimeout(() => {
       removeTypingBubble();
       addMessage(msg, "bot");
@@ -226,6 +242,9 @@ function sendBotSequence(messages) {
   });
 }
 
+/* =========================
+   ===== INPUT HANDLING =====
+========================= */
 function isEmoji(input) {
   return /[^\w\s]/.test(input);
 }
@@ -240,44 +259,39 @@ function sendMessage() {
   inputField.value = "";
 
   const responseSequence = handleState(userText);
-
   sendBotSequence(responseSequence);
 }
 
-/* -------------------------
-   PUZZLE LOGIC (MULTI-MESSAGE)
--------------------------- */
+/* =========================
+   ===== PUZZLE LOGIC =====
+========================= */
 function handleState(input) {
 
- if (state === "start") {
+  if (state === "start") {
+    if (!isEmoji(input)) {
+      startConfusionCount++;
 
-  if (!isEmoji(input)) {
-    startConfusionCount++;
+      if (startConfusionCount === 1) return [["🤨","❓"]];
+      if (startConfusionCount === 2) return [["😅","❓❓"]];
+      return [["🚫💬","🤓☝️💡","🫵⌨️🙂"]];
+    }
 
-    if (startConfusionCount === 1) return [["🤨","❓"]];
-    if (startConfusionCount === 2) return [["😅","❓❓"]];
-    return [["🚫💬","🤓☝️💡","🫵⌨️🙂"]];
+    state = "emoji_discovered";
+
+    return [
+      ["👀","🏆","👂"],
+      ["📍","🗺️🎨","❓"]
+    ];
   }
 
-  state = "emoji_discovered";
-
-  // ✅ ONE sequence, ordered correctly
-  return [
-    ["👀","🏆","👂"],   // first message
-    ["📍","🗺️🎨","❓"]   // second message
-  ];
-}
-
-  // STATE 2 — teach emoji use
   if (state === "emoji_discovered") {
     if (input === "😍") {
       state = "pattern_hint";
       return [["🙃","🫵","⏭️"]];
     }
-    return [["🫵","📍🖼️🎩⬅️❓"]]; // default hint if input not correct
+    return [["🫵","📍🖼️🎩⬅️❓"]];
   }
 
-  // STATE 3 — pattern building
   if (state === "pattern_hint") {
     if (input === "😐") {
       state = "final_hint";
@@ -286,16 +300,14 @@ function handleState(input) {
     return [["🤔","👀👀❓👆"]];
   }
 
-  // STATE 4 — final puzzle
   if (state === "final_hint") {
     if (input === "🫠") {
       state = "complete";
       return [["🎉","🔓","😭😬😂💩🤗"]];
     }
-    return [["❓👀👁️🫵⏭️"]]; // keep user on correct path
+    return [["❓👀👁️🫵⏭️"]];
   }
 
-  // STATE 5 — completed
   if (state === "complete") {
     return [["👋","🤫"]];
   }
@@ -303,26 +315,23 @@ function handleState(input) {
   return [["🤔❓❓"]];
 }
 
-/* -------------------------
-   INITIAL LOADING + START CHAT
--------------------------- */
+/* =========================
+   ===== INITIAL LOAD =====
+========================= */
 window.addEventListener("DOMContentLoaded", () => {
-  const loading = document.getElementById("loading");
-
-  // start dot animation
   const dotAnimation = animateDots();
 
-  // how long loading stays visible
   const loadingTime = 700 + Math.random() * 1000;
 
   setTimeout(() => {
     clearInterval(dotAnimation);
 
-    // start initial message after a delay
     const delay = 1500 + Math.random() * 1500;
+
+    // extra buffer prevents first message cutoff
     setTimeout(() => {
       sendBotSequence([["👀👋❓"]]);
-    }, delay);
+    }, delay + 300);
 
   }, loadingTime);
 });
