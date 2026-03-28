@@ -1,3 +1,4 @@
+<!-- ===== HTML STRUCTURE ===== -->
 <!DOCTYPE html>
 <html>
 <head>
@@ -30,10 +31,17 @@ html, body {
 
 /* Chat container */
 #chat {
-  margin-top: 50px;        /* space for loading bar */
+/* ===== CHAT CONTAINER ===== */
+#chat {
+  position: fixed;
+  top: 50px;                 /* below loading bar */
+  left: 50%;
+  transform: translateX(-50%);
+
   width: 95%;
   max-width: 400px;
   height: calc(100vh - 50px);
+
   background: #000;
   border-radius: 20px;
 
@@ -42,9 +50,6 @@ html, body {
 
   overflow: hidden;
   border: 1px solid #333;
-
-  margin-left: auto;
-  margin-right: auto;
 }
 
 /* Messages area */
@@ -138,19 +143,27 @@ function addMessage(text, sender) {
 
   container.appendChild(msg);
 
-  // Only scroll if there are already messages
-  if (container.children.length > 1) {
-    container.scrollTop = container.scrollHeight;
-  }
+  // ALWAYS scroll smoothly to bottom
+  container.scrollTo({
+    top: container.scrollHeight,
+    behavior: "smooth"
+  });
 }
 
 function addTypingBubble() {
+  const container = document.getElementById("messages");
+
   const typing = document.createElement("div");
   typing.classList.add("message", "bot");
   typing.id = "typing";
   typing.textContent = "…";
-  document.getElementById("messages").appendChild(typing);
-  typing.scrollIntoView();
+
+  container.appendChild(typing);
+
+  container.scrollTo({
+    top: container.scrollHeight,
+    behavior: "smooth"
+  });
 }
 
 function removeTypingBubble() {
