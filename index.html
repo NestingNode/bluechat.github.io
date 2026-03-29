@@ -164,7 +164,11 @@ function addMessage(text, sender) {
   const container = document.getElementById("messages");
   const msg = document.createElement("div");
   msg.classList.add("message", sender);
-  msg.textContent = text;
+ if (text.includes("<a")) {
+  msg.innerHTML = text;   // allow links
+} else {
+  msg.textContent = text; // keep everything else safe
+}
   container.appendChild(msg);
 
   // prevent jump on first message
