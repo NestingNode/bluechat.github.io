@@ -283,29 +283,29 @@ function handleState(input) {
   }
 
   if (state === "emoji_discovered") {
-    if (input === "😍") {
+    if (input === "😬") {
       state = "pattern_hint";
-      return [["🙃","🫵","⏭️"]];
+      return [["👏","💩","🫵","⬇️"]];
     }
-    return [["🫵","📍🖼️🎩⬅️❓"]];
+    return [["🫵","👁️🖼️🎩⬅️❓"]];
   }
 
   if (state === "pattern_hint") {
-    if (input === "😐") {
+    if (input === "😂") {
       state = "final_hint";
-      return [["💀","👁️","➡️"]];
+      return [["👌","😭","👁️","⬇️"]];
     }
     return [["🤔","👀👀❓👆"]];
   }
 
 if (state === "final_hint") {
-  if (input === "🫠") {
+  if (input === "😍") {
     state = "complete";
    return [
   ["🎉","🔓"],
-  ['<a href="https://tinyurl.com/yaadynnk" target="_blank">👆🌐🔗</a>']];
+  ['<a href="https://tinyurl.com/yaadynnk" target="_blank">💀😏🙃🫠😳 👆🌐🔗</a>']];
   }
-  return [["❓👀👁️🫵⏭️"]];
+  return [["❓👀👁️🫵👇"]];
 }
 
   if (state === "complete") return [["👋","🤫"]];
