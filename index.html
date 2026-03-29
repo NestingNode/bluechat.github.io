@@ -301,7 +301,9 @@ function handleState(input) {
 if (state === "final_hint") {
   if (input === "🫠") {
     state = "complete";
-    return [["🎉","🔓", '<a href="https://tinyurl.com/yaadynnk" target="_blank">🗺️✨</a>']];
+   return [
+  ["🎉","🔓"],
+  ['<a href="https://tinyurl.com/yaadynnk" target="_blank">🗺️✨</a>']];
   }
   return [["❓👀👁️🫵⏭️"]];
 }
